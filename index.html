@@ -16,11 +16,21 @@
 </head>
 <body>
     <header>
-        <h1>8 Puzzle</h1>
+        <h1>Project 1 Puzzle</h1>
         <h2>By Nicolas Quinones</h2>
     </header>
-    <div class="container puzzle" id="myTable">
-        <table>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <button id="resetButton" type="button" class="btn btn-primary">Reset</button>
+            </div>
+            <div class="col">
+                <button id="randomizeButton" type="button" class="btn btn-primary">Randomize</button>
+            </div>
+        </div>
+    </div>
+    <div id="puzzle-container" class="container">
+        <table id="myTable" class="puzzle">
             <tr>
                 <td>1</td>
                 <td>2</td>
