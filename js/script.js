@@ -5,23 +5,26 @@ window.onload = function () {
             switch_elems(cell.closest('tr').rowIndex, cell.cellIndex));
     });
 
-    const reset = document.getElementById("resetButton")
-    reset.addEventListener('click', () =>
-        createTable([["1","2","3"],["8","","4"],["7","6","5"]]))
+    const reset = document.getElementById("resetButton");
+    reset.addEventListener('click', () => resetPuzzle());
 
+    const randomize = document.getElementById("randomizeButton");
+    randomize.addEventListener('click', () => randomizePuzzle())
 }
 
 function switch_elems(i, j) {
+    
     console.clear()
     console.log("-------------------")
     const table = document.querySelector('table');
     const selectedBlock = table.rows[i].cells[j].innerHTML;
     console.log("Value of selected block " + selectedBlock + " at " + "(" + i + "," + j + ")");
 
-    checkDirection(table, i, j)
+    moveValid(table, i, j)
 }
 
 function isEmpty(val){
+    //Checks if value is empty
     if(val === ''){
         return true
     }
@@ -31,12 +34,9 @@ function isEmpty(val){
 function checkWin(currentData){
     const winState = [["1","2","3"],["8","","4"],["7","6","5"]]
 
-    // console.log(JSON.stringify(currentData))
-    // console.log(JSON.stringify(winState))
-
     if(JSON.stringify(currentData) === JSON.stringify(winState)){
         //Add some effects to show that you won the game
-        console.log(" YOU WON ")
+        swal("YOU WON", "You solved the puzzle!", "success");
     }
 }
 
@@ -74,11 +74,13 @@ function moveUp(table, i, j){
     checkWin(currentData)
 }
 
-function checkDirection(table, i, j){
+function moveValid(table, i, j){
+    // Moves the selected puzzle piece to the valid empty box
     let currentData = [...table.rows].map(t => [...t.children].map(u => u.innerText))
     let rowLen = currentData.length - 1;
     let colLen = currentData[i].length - 1;
     console.log("checking available moves... ")
+
     if(j < rowLen){
         //right
         console.log("checking right...")
@@ -114,72 +116,90 @@ function checkDirection(table, i, j){
 }
 
 function resetPuzzle(){
-    let table = document.getElementById('myTable');
-    let parent = table.parentElement;
+    document.getElementById('1').innerHTML = "1";
+    document.getElementById('2').innerHTML = "2";
+    document.getElementById('3').innerHTML = "3";
+    document.getElementById('4').innerHTML = "4";
+    document.getElementById('5').innerHTML = "5";
+    document.getElementById('6').innerHTML = "6";
+    document.getElementById('7').innerHTML = "7";
+    document.getElementById('8').innerHTML = "8";
+    document.getElementById('blank').innerHTML = "";
+    console.clear()
+    console.log("--------------- Puzzle Reset ---------------");
+    
+}
 
-    parent.removeChild(table);
+function checkOptions(table, i,j){
+    // creates an array of the valid boxes that can make a move depending on the location
+    // of the empty box
+    let currentData = [...table.rows].map(t => [...t.children].map(u => u.innerText))
+    let rowLen = currentData.length - 1;
+    let colLen = currentData[i].length - 1;
+    let randOptions = []
+    console.log("getting options ")
 
-    let newTable = document.createElement('table');
-    for(let i = 0; i < 3; i++){
-        let newRow = document.createElement('tr')
-        for(let j = 0; j < 3; j ++){
-            let data = document.createElement('td')
+    if(j < rowLen){
+        //right
+        randOptions.push([i,j+1])
+    }
+    if(j != 0){
+        //left
+        randOptions.push([i,j-1])
+    }
+    if(i < colLen){
+        //down
+        randOptions.push([i+1,j])
+    }
+    if(i != 0){
+        //up
+        randOptions.push([i-1,j])
+    }
+    console.log(randOptions)
+    return randOptions
+}
+
+function findEmpty(){
+    //Returns the coordinates of the empty box
+    const table = document.querySelector('table');
+    currentData = [...table.rows].map(t => [...t.children].map(u => u.innerText))
+    for(i = 0; i < currentData.length; i++){
+        let index = currentData[i].indexOf('');
+        if (index != '-1'){
+            return [i, index]
         }
     }
-
-    let newRow1 = document.createElement('tr')
-    let newRow2 = document.createElement('tr')
-    let newRow3 = document.createElement('tr')
-
-    let rowData = document.createElement('td')
-
-    newTable.appendChild(thead);
-    newTable.appendChild(tbody);
-
-    // Adding the entire table to the body tag
-    document.getElementById('body').appendChild(table);
-
-
 }
 
-//There is a problem when the table is created that dosent allow
-//The values to be changed
+function randomizePuzzle(){
+    resetPuzzle()
+    console.log("Randomizing ...");
 
-//Does the inclusion 
-function createTable(tableData) {
-    //delete the table if it already exists
-    let table = document.getElementById('myTable');
-    let parent = table.parentElement;
+    let numOfRand = 4;
+    let preventMove = [-1,-1]
 
-    parent.removeChild(table);
+    for(let i = 0; i < numOfRand; i++){
+        //gets empty box coordinates
+        let empty = findEmpty()
+        const table = document.querySelector('table');
     
-    var newTable = document.createElement('table');
-
-    //Gives the table an id="myTable" and class="puzzle"
-    newTable.setAttribute('id', 'myTable');
-    newTable.setAttribute('class', 'puzzle')
+        //gets array of potential valid moves
+        const options = checkOptions(table, empty[0], empty[1])
     
-    var tableBody = document.createElement('tbody');
-  
-    tableData.forEach(function(rowData) {
-      var row = document.createElement('tr');
-  
-      rowData.forEach(function(cellData) {
-        var cell = document.createElement('td');
-        cell.appendChild(document.createTextNode(cellData));
-        row.appendChild(cell);
-      });
-  
-      tableBody.appendChild(row);
-    });
-  
-    newTable.appendChild(tableBody);
-    document.getElementById("puzzle-container").appendChild(newTable);
+        //gets the coordiantes from the last empty box and deletes it from the options
+        //This prevents the game from winning automatically through randimization
+        for(let j = 0; j < options.length; j++){
+            if (JSON.stringify(options[j]) === JSON.stringify(preventMove)){
+                options.splice(j, 1)
+            }
+        }
+
+        //chooses the next random move
+        let nextMove = options[Math.floor(Math.random() * options.length)]
+    
+        //switches the selected box with the empty one
+        moveValid(table, nextMove[0], nextMove[1])
+        preventMove = empty;
+    }
+    console.log("-----------------------")
 }
-
-
-function randomize(table){
-    let currentData = [...table.rows].map(t => [...t.children].map(u => u.innerText))
-    let possibleStarts = []
-}
-
