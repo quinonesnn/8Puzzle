@@ -175,7 +175,7 @@ function randomizePuzzle(){
     resetPuzzle()
     console.log("Randomizing ...");
 
-    let numOfRand = 4;
+    let numOfRand = 12;
     let preventMove = [-1,-1]
 
     for(let i = 0; i < numOfRand; i++){
